@@ -1,8 +1,9 @@
 #!/bin/sh
-# Init script for Oauth2 Proxy
+# Init script for oauth2_proxy
+# https://github.com/bitly/oauth2_proxy
 #
 ### BEGIN INIT INFO
-# Provides:          oauth2-proxy
+# Provides:          oauth2_proxy
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: 
@@ -12,18 +13,13 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export PATH
 
-name=oauth2-proxy
-program=/usr/bin/oauth2_proxy
-args=-config\=/etc/oauth2_proxy/oauth2_proxy.cfg
+name=oauth2_proxy
+program=/usr/bin/$name
+args=-config\=/etc/$name/$name.cfg
 pidfile="/var/run/$name.pid"
 
-[ -r /etc/default/$name ] && . /etc/default/$name
-[ -r /etc/sysconfig/$name ] && . /etc/sysconfig/$name
-
-[ -z "$nice" ] && nice=0
-
 trace() {
-  logger -t "/etc/init.d/oauth2_proxy" "$@"
+  logger -t "/etc/init.d/$name" "$@"
 }
 
 emit() {
@@ -34,16 +30,12 @@ emit() {
 start() {
 
   # Ensure the log directory is setup correctly.
-  [ ! -d "/var/log/oauth2_proxy/" ] && mkdir "/var/log/oauth2_proxy/"
-  chown "$user":"$group" "/var/log/oauth2_proxy/"
-  chmod 755 "/var/log/oauth2_proxy/"
-
-
-  # Setup any environmental stuff beforehand
-
+  [ ! -d "/var/log/$name/" ] && mkdir "/var/log/$name/"
+  chown "$user":"$group" "/var/log/$name/"
+  chmod 755 "/var/log/$name/"
 
   # Run the program!
-  nohup "$program" $args >> /var/log/oauth2_proxy/oauth2_proxy.stdout 2>> /var/log/oauth2_proxy/oauth2_proxy.stderr &
+  nohup "$program" $args >> /var/log/$name/$name.stdout 2>> /var/log/$name/$name.stderr &
 
   # Generate the pidfile from here. If we instead made the forked process
   # generate it there will be a race condition between the pidfile writing
@@ -86,9 +78,6 @@ status() {
     if ps -p $pid > /dev/null 2> /dev/null ; then
       # process by this pid is running.
       # It may not be our pid, but that's what you get with just pidfiles.
-      # TODO(sissel): Check if this process seems to be the same as the one we
-      # expect. It'd be nice to use flock here, but flock uses fork, not exec,
-      # so it makes it quite awkward to use in this case.
       return 0
     else
       return 2 # program is dead but pid file exists
