@@ -18,6 +18,9 @@ program=/usr/bin/$name
 args=-config\=/etc/$name/$name.cfg
 pidfile="/var/run/$name.pid"
 
+[ -r /etc/default/$name ] && . /etc/default/$name
+[ -r /etc/sysconfig/$name ] && . /etc/sysconfig/$name
+
 trace() {
   logger -t "/etc/init.d/$name" "$@"
 }
